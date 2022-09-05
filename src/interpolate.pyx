@@ -5,7 +5,7 @@ from bbhx.utils.utility import pointer_adjust
 
 assert sizeof(int) == sizeof(np.int32_t)
 
-cdef extern from "Interpolate.hh":
+cdef extern from "Interpolate.cpp":
     void interpolate(double* freqs, double* propArrays,
                      double* B, double* upper_diag, double* diag, double* lower_diag,
                      int length, int numInterpParams, int numModes, int numBinAll);

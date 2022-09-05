@@ -177,6 +177,7 @@ for key in [
 
 use_omp = not args.no_omp
 
+include_dirs = []
 
 # Obtain the numpy include directory. This logic works across numpy versions.
 try:
@@ -191,6 +192,8 @@ if args.lapack is None:
 else:
     lapack_include = [args.lapack + "/include"]
     lapack_lib = [args.lapack + "/lib"]
+
+include_dirs += lapack_include
 
 if args.gsl is None:
     gsl_include = [args.gsl_include]
@@ -247,7 +250,7 @@ if run_cuda_install:
                 # "-lineinfo",
             ],  # for debugging
         },
-        include_dirs=[numpy_include, CUDA["include"], "include"],
+        include_dirs= include_dirs + [numpy_include, CUDA["include"], "include"],
     )
 
     pyPhenomHM_ext = Extension(
@@ -289,14 +292,15 @@ for fp in fps_pyx:
     shutil.copy("src/" + fp + ".pyx", "src/" + fp + "_cpu.pyx")
 
 cpu_extension = dict(
-    libraries=["gsl", "gslcblas", "gomp", "lapack"],
+    libraries=["gsl", "gslcblas", "gomp", "lapack", "lapacke"],
     language="c++",
     # This syntax is specific to this build system
     # we're only going to use certain compiler args with nvcc
     # and not with gcc the implementation of this trick is in
     # customize_compiler()
     extra_compile_args={"gcc": ["-std=c++11", "-fopenmp"],},  # '-g'],
-    include_dirs=[numpy_include, "include"],
+    #extra_link_args=['-Wl,--no-as-needed'],
+    include_dirs= include_dirs + [numpy_include, "include"],
 )
 
 pyPhenomHM_cpu_ext = Extension(
@@ -312,7 +316,7 @@ pyResponse_cpu_ext = Extension(
 
 pyInterpolate_cpu_ext = Extension(
     "pyInterpolate_cpu",
-    sources=["src/Interpolate.cpp", "src/interpolate_cpu.pyx"],
+    sources=["src/interpolate_cpu.pyx"],
     **cpu_extension,
 )
 
